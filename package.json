@@ -1,0 +1,37 @@
+{
+  "name": "steam-idler",
+  "version": "1.0.0",
+  "description": "Lightweight Steam playtime daemon: keeps one account in-game for a chosen App ID.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "exec node --env-file-if-exists=.env --optimize-for-size --max-old-space-size=128 --max-semi-space-size=2 start.mjs",
+    "auth": "npm run build && node --env-file-if-exists=.env dist/cli/auth.js",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "@types/node": "^22.20.5",
+    "@types/qrcode-terminal": "^0.12.2",
+    "@types/steam-user": "^5.1.1",
+    "pino": "^10.4.0",
+    "qrcode-terminal": "^0.12.0",
+    "steam-session": "^1.9.4",
+    "steam-user": "^5.3.0",
+    "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.1",
+    "protobufjs": "^7.6.6"
+  }
+}
