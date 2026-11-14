@@ -1,4 +1,8 @@
-# Deploying to alwaysdata (Free plan)
+# Deploying to alwaysdata
+
+> **The Free plan does not allow services.** Tested 2026-11-14: the service form answers "Your Free (1GB disk,
+> 256MB RAM, 0.25 CPU) subscription does not allow for services." This guide therefore needs a paid plan. For a
+> free host, see [BOT-HOSTING.md](BOT-HOSTING.md).
 
 alwaysdata's Free plan is "for personal needs": 256 MB RAM, ¼ CPU and 1 GB of SSD, for life
 ([offers](https://www.alwaysdata.com/en/offers/)). The daemon runs as a **Service**, alwaysdata's name for a 24/7

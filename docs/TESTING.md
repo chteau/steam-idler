@@ -15,7 +15,8 @@ The tests use an EventEmitter-based fake Steam client (`tests/helpers.ts`), so t
 | Backoff math and jitter, error classification, duplicate logon prevention, transient/throttled/replaced/fatal handling, stop | `tests/reconnect.test.ts` |
 | Atomic writes, 0600 permissions, failed rename keeps the old file, corrupt-file quarantine, token source selection | `tests/session-store.test.ts` |
 | QR login success, timeout, denial and start failure; token pre-checks; headless Steam Guard | `tests/auth.test.ts` |
-| SIGTERM/SIGINT handling, cleanup deadline, second-signal force exit | `tests/shutdown.test.ts` |
+| SIGTERM/SIGINT/SIGHUP handling, cleanup deadline, second-signal force exit | `tests/shutdown.test.ts` |
+| Discord reminder: fixed-slot schedule, mention scoping, bounded retries, URL never logged | `tests/reminder.test.ts` |
 | End-to-end wiring: rotation save and save failure, corrupt file fallback, parking on fatal errors, stop/logoff, no token in logs | `tests/app.test.ts` |
 
 ## Manual integration checklist (real Steam account)

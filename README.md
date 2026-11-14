@@ -25,6 +25,7 @@ src/
   storage/session-store.ts atomic 0600 JSON file store, env bootstrap, token rotation
   utils/logger.ts          pino with secret redaction
   utils/shutdown.ts        SIGTERM/SIGINT/SIGHUP with a cleanup deadline
+  utils/reminder.ts        optional Discord renewal reminder (fixed slots, bounded retries)
 start.mjs                  production launcher: compile, then run in the same process
 ```
 
@@ -162,10 +163,12 @@ never live in the repository. They live only in the host's environment variables
 
 ## Deployment
 
-- **alwaysdata (Free plan, recommended):** [docs/ALWAYSDATA.md](docs/ALWAYSDATA.md). It has a persistent disk, so
-  token renewal works.
-- **DIGITALY Cloud:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md), including what is and is not verified about the
-  platform.
+- **Bot-Hosting.net (Free plan, what this project runs on):** [docs/BOT-HOSTING.md](docs/BOT-HOSTING.md).
+  Always on, but the free plan has to be renewed by hand every 4 days. The optional Discord reminder pings you.
+- **alwaysdata:** [docs/ALWAYSDATA.md](docs/ALWAYSDATA.md). Its Free plan **does not allow services**, so you need
+  a paid plan. It has a persistent disk, so token renewal works there.
+- **DIGITALY Cloud:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Its free regions were at capacity when tested.
+  The guide also records what is and is not verified about the platform.
 
 ## Known limitations
 
@@ -178,5 +181,8 @@ never live in the repository. They live only in the host's environment variables
   off for 5+ minutes. Run only one copy.
 - Automated Steam clients may conflict with the Steam Subscriber Agreement. Use this on your own account, at your
   own risk.
-- DIGITALY Cloud's free plan has no documented persistent storage, and auto-restart appears to be a paid feature.
-  See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+- Free hosting has trade-offs:
+  - Bot-Hosting's free plan needs a manual renewal every 4 days.
+  - alwaysdata's free plan doesn't allow services.
+  - DIGITALY's free plan has no documented persistent storage.
+  See the guides above.
