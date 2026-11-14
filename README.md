@@ -24,7 +24,7 @@ src/
   steam/reconnect.ts       logon attempts, error classification, backoff with jitter
   storage/session-store.ts atomic 0600 JSON file store, env bootstrap, token rotation
   utils/logger.ts          pino with secret redaction
-  utils/shutdown.ts        SIGTERM/SIGINT with a cleanup deadline
+  utils/shutdown.ts        SIGTERM/SIGINT/SIGHUP with a cleanup deadline
 start.mjs                  production launcher: compile, then run in the same process
 ```
 
@@ -156,8 +156,10 @@ never live in the repository. They live only in the host's environment variables
 
 ## Deployment
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for DIGITALY Cloud, including what is and is not verified about the
-platform.
+- **alwaysdata (Free plan, recommended):** [docs/ALWAYSDATA.md](docs/ALWAYSDATA.md). It has a persistent disk, so
+  token renewal works.
+- **DIGITALY Cloud:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md), including what is and is not verified about the
+  platform.
 
 ## Known limitations
 

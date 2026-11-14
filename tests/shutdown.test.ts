@@ -15,7 +15,7 @@ describe('installShutdown', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it.each(['SIGTERM', 'SIGINT'])('runs cleanup once and exits 0 on %s', async (signal) => {
+  it.each(['SIGTERM', 'SIGINT', 'SIGHUP'])('runs cleanup once and exits 0 on %s', async (signal) => {
     const cleanup = vi.fn(async () => {});
     const { proc, exit, handle } = setup(cleanup);
     proc.emit(signal);
@@ -52,5 +52,6 @@ describe('installShutdown', () => {
     handle.dispose();
     expect(proc.listenerCount('SIGTERM')).toBe(0);
     expect(proc.listenerCount('SIGINT')).toBe(0);
+    expect(proc.listenerCount('SIGHUP')).toBe(0);
   });
 });

@@ -16,7 +16,7 @@ export interface ShutdownHandle {
 }
 
 /**
- * Handles SIGTERM/SIGINT once: runs cleanup with a deadline, then exits.
+ * Handles SIGTERM/SIGINT/SIGHUP once: runs cleanup with a deadline, then exits.
  * A second signal during cleanup forces an immediate exit.
  */
 export function installShutdown(opts: ShutdownOptions): ShutdownHandle {
@@ -63,14 +63,18 @@ export function installShutdown(opts: ShutdownOptions): ShutdownHandle {
 
   const onTerm = (): void => onSignal('SIGTERM');
   const onInt = (): void => onSignal('SIGINT');
+  // alwaysdata restarts a service with SIGHUP and then respawns it: exit cleanly for that too.
+  const onHup = (): void => onSignal('SIGHUP');
   proc.on('SIGTERM', onTerm);
   proc.on('SIGINT', onInt);
+  proc.on('SIGHUP', onHup);
 
   return {
     shutdown,
     dispose: () => {
       proc.removeListener('SIGTERM', onTerm);
       proc.removeListener('SIGINT', onInt);
+      proc.removeListener('SIGHUP', onHup);
     },
   };
 }
