@@ -17,6 +17,8 @@ export interface Config {
   renewRefreshTokens: boolean;
   /** Status shown to friends. Steam only displays the game when this session is not offline/invisible. */
   persona: PersonaName;
+  /** Discord renewal reminder (for hosts that need manual renewals), or undefined when disabled. */
+  reminder: { webhookUrl: string; userId: string | undefined; intervalHours: number } | undefined;
 }
 
 export class ConfigError extends Error {
@@ -99,7 +101,32 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
     problems.push(`STEAM_PERSONA must be one of ${Object.keys(PERSONA_STATES).join(', ')} (got "${env.STEAM_PERSONA}").`);
   }
 
+  const webhookRaw = env.DISCORD_WEBHOOK?.trim() || undefined;
+  const userRaw = env.DISCORD_ID?.trim() || undefined;
+  const hoursRaw = env.RENEW_REMINDER_HOURS?.trim() || '72';
+  let reminder: Config['reminder'];
+  if (userRaw !== undefined && !/^\d{17,20}$/.test(userRaw)) {
+    problems.push('DISCORD_ID must be a Discord user ID (17-20 digits; Developer Mode > right-click your name > Copy User ID).');
+  }
+  if (userRaw !== undefined && webhookRaw === undefined) {
+    problems.push('DISCORD_ID is set but DISCORD_WEBHOOK is missing.');
+  }
+  let intervalHours = 72;
+  if (!/^\d+$/.test(hoursRaw) || Number(hoursRaw) < 1 || Number(hoursRaw) > 500) {
+    problems.push(`RENEW_REMINDER_HOURS must be a whole number of hours between 1 and 500 (got "${hoursRaw}").`);
+  } else {
+    intervalHours = Number(hoursRaw);
+  }
+  if (webhookRaw !== undefined) {
+    if (!/^https:\/\/(?:(?:canary|ptb)\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/.test(webhookRaw)) {
+      // Never echo the value: a webhook URL is a secret (anyone holding it can post).
+      problems.push('DISCORD_WEBHOOK must be a Discord webhook URL (https://discord.com/api/webhooks/<id>/<token>).');
+    } else {
+      reminder = { webhookUrl: webhookRaw, userId: userRaw, intervalHours };
+    }
+  }
+
   if (problems.length > 0) throw new ConfigError(problems);
 
-  return { refreshToken, appId, logLevel, sessionFile, renewRefreshTokens, persona };
+  return { refreshToken, appId, logLevel, sessionFile, renewRefreshTokens, persona, reminder };
 }

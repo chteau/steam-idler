@@ -78,6 +78,9 @@ Configuration comes from environment variables. A local `.env` file is read if p
 | `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. |
 | `SESSION_FILE` | `./data/session.json` | Local token store. `none` disables it (memory only). |
 | `STEAM_PERSONA` | `online` | Status set after logon: `online`, `away`, `invisible` or `offline`. Steam shows the game to others only when this session is online or away. |
+| `DISCORD_WEBHOOK` | *(empty)* | Optional. Discord webhook that receives a renewal reminder, for hosts that need manual renewals. **Secret.** |
+| `DISCORD_ID` | *(empty)* | Optional. Your Discord user ID; the reminder mentions only you. |
+| `RENEW_REMINDER_HOURS` | `72` | Hours between reminders. Slots are fixed in time, so restarts neither reset the countdown nor send an extra ping. |
 | `STEAM_RENEW_REFRESH_TOKENS` | `false` | Ask Steam to rotate the token on logon. Leave `false` unless `SESSION_FILE` is durable storage. |
 
 Bad configuration stops the daemon at startup with exit code 78. It lists every problem it found.
@@ -148,6 +151,8 @@ never live in the repository. They live only in the host's environment variables
   - Logs pass through pino redaction for `refreshToken`, `token`, `accessToken`, `password` and `qrChallengeUrl`,
     as a safety net.
   - The code never logs secrets on purpose, and the tests check that no token appears in the log output.
+- **The Discord webhook URL is a secret too.** Anyone holding it can post in that channel. Keep it in the host's
+  environment variables; the daemon never logs it. If it leaks, delete the webhook in Discord and create a new one.
 - **Your password is never used.** Login uses the QR flow only.
 - **Local files** are written with mode 0600, inside a 0700 directory.
 - **Treat the refresh token like a password.** It grants a Steam client login to your account until it expires or

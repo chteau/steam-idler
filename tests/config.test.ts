@@ -15,6 +15,7 @@ describe('loadConfig', () => {
       sessionFile: path.resolve(cwd, 'data/session.json'),
       renewRefreshTokens: false,
       persona: 'online',
+      reminder: undefined,
     });
   });
 
@@ -29,6 +30,34 @@ describe('loadConfig', () => {
     expect(c.logLevel).toBe('debug');
     expect(c.sessionFile).toBe(path.resolve(cwd, 'state/s.json'));
     expect(c.renewRefreshTokens).toBe(true);
+  });
+
+  it('enables the Discord reminder with a webhook and optional user ID', () => {
+    const webhook = 'https://discord.com/api/webhooks/123456789012345678/abc_DEF-ghi';
+    expect(loadConfig({ DISCORD_WEBHOOK: webhook, DISCORD_ID: '123456789012345678' }, cwd).reminder).toEqual({
+      webhookUrl: webhook,
+      userId: '123456789012345678',
+      intervalHours: 72,
+    });
+    expect(loadConfig({ DISCORD_WEBHOOK: webhook, RENEW_REMINDER_HOURS: '48' }, cwd).reminder).toEqual({
+      webhookUrl: webhook,
+      userId: undefined,
+      intervalHours: 48,
+    });
+  });
+
+  it('rejects bad reminder settings without echoing the webhook', () => {
+    const bad = 'https://evil.example/api/webhooks/1/secret-token';
+    try {
+      loadConfig({ DISCORD_WEBHOOK: bad }, cwd);
+      expect.unreachable();
+    } catch (err) {
+      expect((err as Error).message).toContain('DISCORD_WEBHOOK must be');
+      expect((err as Error).message).not.toContain('secret-token');
+    }
+    expect(() => loadConfig({ DISCORD_ID: '123456789012345678' }, cwd)).toThrow('DISCORD_WEBHOOK is missing');
+    expect(() => loadConfig({ DISCORD_ID: '@me' }, cwd)).toThrow('DISCORD_ID must be');
+    expect(() => loadConfig({ RENEW_REMINDER_HOURS: '0' }, cwd)).toThrow('RENEW_REMINDER_HOURS');
   });
 
   it('accepts persona states case-insensitively', () => {

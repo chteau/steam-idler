@@ -3,6 +3,7 @@ import { ConfigError, loadConfig } from './config.js';
 import { createSteamClient } from './steam/client.js';
 import { FileSessionStore, MemorySessionStore } from './storage/session-store.js';
 import { createLogger } from './utils/logger.js';
+import { startRenewReminder } from './utils/reminder.js';
 import { installShutdown } from './utils/shutdown.js';
 
 async function main(): Promise<void> {
@@ -42,7 +43,22 @@ async function main(): Promise<void> {
     throw err;
   }
 
-  installShutdown({ log, cleanup: () => daemon.stop() });
+  const reminder = config.reminder
+    ? startRenewReminder({
+        webhookUrl: config.reminder.webhookUrl,
+        userId: config.reminder.userId,
+        intervalMs: config.reminder.intervalHours * 3_600_000,
+        log,
+      })
+    : undefined;
+
+  installShutdown({
+    log,
+    cleanup: async () => {
+      reminder?.stop();
+      await daemon.stop();
+    },
+  });
 }
 
 main().catch((err: unknown) => {

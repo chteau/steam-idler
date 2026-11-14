@@ -14,6 +14,8 @@ export const REDACT_PATHS = [
   'qrChallengeUrl',
   'challengeUrl',
   'machineAuthToken',
+  'webhookUrl',
+  '*.webhookUrl',
   '*.refreshToken',
   '*.accessToken',
   '*.token',
