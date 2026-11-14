@@ -100,7 +100,10 @@ export async function startDaemon(config: Config, deps: DaemonDeps): Promise<Dae
     );
   });
 
-  const presence = new PresenceManager(client, log, { appId: config.appId });
+  const presence = new PresenceManager(client, log, {
+    appId: config.appId,
+    sessionCycleMs: config.sessionHours * 3_600_000,
+  });
 
   const park = (): void => {
     if (parked) return;

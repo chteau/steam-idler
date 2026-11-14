@@ -4,7 +4,9 @@ import { FakeSteamClient, memoryLogger } from './helpers.js';
 
 const APP = 2200;
 
-function setup(opts: { confirmTimeoutMs?: number; maxUnconfirmedAttempts?: number } = {}) {
+function setup(
+  opts: { confirmTimeoutMs?: number; maxUnconfirmedAttempts?: number; sessionCycleMs?: number; cycleGapMs?: number } = {},
+) {
   const client = new FakeSteamClient();
   const { log, lines } = memoryLogger();
   const presence = new PresenceManager(client, log, { appId: APP, ...opts });
@@ -118,6 +120,77 @@ describe('PresenceManager', () => {
     presence.onPlayingState(false, APP);
     presence.onPlayingState(false, 0);
     expect(client.gamesPlayedCalls).toEqual([[APP], [APP]]);
+  });
+
+  describe('session cycling', () => {
+    const HOUR = 3_600_000;
+    const cycling = () => setup({ sessionCycleMs: 5 * HOUR, cycleGapMs: 5000 });
+
+    it('restarts the play session after 5 hours of continuous play', () => {
+      const { client, presence } = cycling();
+      presence.onLoggedOn();
+      presence.onPlayingState(false, APP);
+      vi.advanceTimersByTime(5 * HOUR - 1);
+      expect(client.gamesPlayedCalls).toEqual([[APP]]);
+      vi.advanceTimersByTime(1);
+      expect(client.gamesPlayedCalls).toEqual([[APP], []]);
+      expect(presence.state).toBe('cycling');
+      presence.onPlayingState(false, 0); // echo of our stop: ignored
+      expect(client.gamesPlayedCalls).toHaveLength(2);
+      vi.advanceTimersByTime(5000);
+      expect(client.gamesPlayedCalls).toEqual([[APP], [], [APP]]);
+      presence.onPlayingState(false, APP);
+      expect(presence.state).toBe('playing');
+      // And again 5 hours after the new confirmation.
+      vi.advanceTimersByTime(5 * HOUR);
+      expect(client.gamesPlayedCalls.at(-1)).toEqual([]);
+    });
+
+    it('does not restart while you play another game, and resumes when it closes', () => {
+      const { client, presence } = cycling();
+      presence.onLoggedOn();
+      presence.onPlayingState(false, APP);
+      vi.advanceTimersByTime(2 * HOUR);
+      presence.onPlayingState(true, 730); // you start a game elsewhere
+      vi.advanceTimersByTime(10 * HOUR);
+      expect(client.gamesPlayedCalls).toEqual([[APP]]);
+      presence.onPlayingState(false, 0); // it closes
+      expect(client.gamesPlayedCalls).toEqual([[APP], [APP]]);
+      presence.onPlayingState(false, APP);
+      vi.advanceTimersByTime(5 * HOUR - 1);
+      expect(client.gamesPlayedCalls).toHaveLength(2); // countdown restarted at the confirmation
+      vi.advanceTimersByTime(1);
+      expect(client.gamesPlayedCalls.at(-1)).toEqual([]);
+    });
+
+    it('waits if another game starts during the restart gap', () => {
+      const { client, presence } = cycling();
+      presence.onLoggedOn();
+      presence.onPlayingState(false, APP);
+      vi.advanceTimersByTime(5 * HOUR);
+      presence.onPlayingState(true, 730);
+      vi.advanceTimersByTime(60_000);
+      expect(client.gamesPlayedCalls).toEqual([[APP], []]);
+      presence.onPlayingState(false, 0);
+      expect(client.gamesPlayedCalls).toEqual([[APP], [], [APP]]);
+    });
+
+    it('cancels pending cycles on disconnect', () => {
+      const { client, presence } = cycling();
+      presence.onLoggedOn();
+      presence.onPlayingState(false, APP);
+      presence.onDisconnected();
+      vi.advanceTimersByTime(20 * HOUR);
+      expect(client.gamesPlayedCalls).toEqual([[APP]]);
+    });
+
+    it('is off when sessionCycleMs is 0', () => {
+      const { client, presence } = setup();
+      presence.onLoggedOn();
+      presence.onPlayingState(false, APP);
+      vi.advanceTimersByTime(100 * HOUR);
+      expect(client.gamesPlayedCalls).toEqual([[APP]]);
+    });
   });
 
   it('clears the game on stop only when it was set', () => {

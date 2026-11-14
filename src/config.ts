@@ -17,6 +17,8 @@ export interface Config {
   renewRefreshTokens: boolean;
   /** Status shown to friends. Steam only displays the game when this session is not offline/invisible. */
   persona: PersonaName;
+  /** Hours of continuous play before the play session is restarted (Steam records hours on session end). 0 = never. */
+  sessionHours: number;
   /** Discord renewal reminder (for hosts that need manual renewals), or undefined when disabled. */
   reminder: { webhookUrl: string; userId: string | undefined; intervalHours: number } | undefined;
 }
@@ -101,6 +103,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
     problems.push(`STEAM_PERSONA must be one of ${Object.keys(PERSONA_STATES).join(', ')} (got "${env.STEAM_PERSONA}").`);
   }
 
+  const sessionRaw2 = env.STEAM_SESSION_HOURS?.trim() || '5';
+  let sessionHours = 5;
+  if (!/^\d+(\.\d+)?$/.test(sessionRaw2) || Number(sessionRaw2) > 500 || (Number(sessionRaw2) > 0 && Number(sessionRaw2) < 0.05)) {
+    problems.push(`STEAM_SESSION_HOURS must be 0 (never) or a number of hours between 0.05 and 500 (got "${sessionRaw2}").`);
+  } else {
+    sessionHours = Number(sessionRaw2);
+  }
+
   const webhookRaw = env.DISCORD_WEBHOOK?.trim() || undefined;
   const userRaw = env.DISCORD_ID?.trim() || undefined;
   const hoursRaw = env.RENEW_REMINDER_HOURS?.trim() || '72';
@@ -128,5 +138,5 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
 
   if (problems.length > 0) throw new ConfigError(problems);
 
-  return { refreshToken, appId, logLevel, sessionFile, renewRefreshTokens, persona, reminder };
+  return { refreshToken, appId, logLevel, sessionFile, renewRefreshTokens, persona, sessionHours, reminder };
 }

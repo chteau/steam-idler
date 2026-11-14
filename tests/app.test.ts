@@ -8,7 +8,7 @@ import { FakeSteamClient, fakeToken, memoryLogger, validToken } from './helpers.
 const policy = { baseMs: 1000, maxMs: 8000, replacedMinMs: 5000, throttledMinMs: 10_000 };
 
 function config(overrides: Partial<Config> = {}): Config {
-  return { refreshToken: validToken(), appId: 2200, logLevel: 'info', sessionFile: undefined, renewRefreshTokens: false, persona: 'online', reminder: undefined, ...overrides };
+  return { refreshToken: validToken(), appId: 2200, logLevel: 'info', sessionFile: undefined, renewRefreshTokens: false, persona: 'online', sessionHours: 5, reminder: undefined, ...overrides };
 }
 
 async function start(cfg = config(), store: SessionStore = new MemorySessionStore()) {

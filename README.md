@@ -43,6 +43,9 @@ start.mjs                  production launcher: compile, then run in the same pr
   - If a game is running on another session of the account (your PC, say), it waits. It never kicks that session.
     When the other game stops, it restores the presence.
   - If Steam never confirms, it gives up after 3 tries until the next logon.
+  - Every 5 hours of continuous play (`STEAM_SESSION_HOURS`), it ends the play session and starts a new one a
+    few seconds later, because Steam credits play time when a session ends. It skips this while you're playing
+    another game, and the countdown starts again once Quake is confirmed running again.
   - On shutdown it sends `gamesPlayed([])`, then logs off.
 - **Memory.** It disables the PICS app cache and steam-user's data directory, and runs with V8 size flags. It uses
   about 120 MB RSS on Node 22, or about 185 MB when started through `npm start`, because npm's own process stays
@@ -79,6 +82,7 @@ Configuration comes from environment variables. A local `.env` file is read if p
 | `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. |
 | `SESSION_FILE` | `./data/session.json` | Local token store. `none` disables it (memory only). |
 | `STEAM_PERSONA` | `online` | Status set after logon: `online`, `away`, `invisible` or `offline`. Steam shows the game to others only when this session is online or away. |
+| `STEAM_SESSION_HOURS` | `5` | Restart the play session after this many hours of continuous play, so Steam records the hours (it credits time when a session ends). Skipped while you play another game. `0` = never. |
 | `DISCORD_WEBHOOK` | *(empty)* | Optional. Discord webhook that receives a renewal reminder, for hosts that need manual renewals. **Secret.** |
 | `DISCORD_ID` | *(empty)* | Optional. Your Discord user ID; the reminder mentions only you. |
 | `RENEW_REMINDER_HOURS` | `72` | Hours between reminders. Slots are fixed in time, so restarts neither reset the countdown nor send an extra ping. |

@@ -15,6 +15,7 @@ describe('loadConfig', () => {
       sessionFile: path.resolve(cwd, 'data/session.json'),
       renewRefreshTokens: false,
       persona: 'online',
+      sessionHours: 5,
       reminder: undefined,
     });
   });
@@ -60,6 +61,11 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ RENEW_REMINDER_HOURS: '0' }, cwd)).toThrow('RENEW_REMINDER_HOURS');
   });
 
+  it('accepts session hours, including 0 to disable', () => {
+    expect(loadConfig({ STEAM_SESSION_HOURS: '0' }, cwd).sessionHours).toBe(0);
+    expect(loadConfig({ STEAM_SESSION_HOURS: '2.5' }, cwd).sessionHours).toBe(2.5);
+  });
+
   it('accepts persona states case-insensitively', () => {
     expect(loadConfig({ STEAM_PERSONA: 'Invisible' }, cwd).persona).toBe('invisible');
   });
@@ -82,6 +88,9 @@ describe('loadConfig', () => {
     [{ STEAM_REFRESH_TOKEN: 'not a token' }, 'does not look like a Steam refresh token'],
     [{ STEAM_RENEW_REFRESH_TOKENS: 'maybe' }, 'STEAM_RENEW_REFRESH_TOKENS must be'],
     [{ STEAM_PERSONA: 'busy' }, 'STEAM_PERSONA must be one of'],
+    [{ STEAM_SESSION_HOURS: '-1' }, 'STEAM_SESSION_HOURS must be'],
+    [{ STEAM_SESSION_HOURS: '0.01' }, 'STEAM_SESSION_HOURS must be'],
+    [{ STEAM_SESSION_HOURS: 'five' }, 'STEAM_SESSION_HOURS must be'],
     [{ STEAM_PERSONA: 'constructor' }, 'STEAM_PERSONA must be one of'],
     [{ STEAM_RENEW_REFRESH_TOKENS: 'true', SESSION_FILE: 'none' }, 'requires SESSION_FILE'],
   ])('rejects %o', (env, message) => {
