@@ -90,12 +90,34 @@ describe('PresenceManager', () => {
     expect(client.gamesPlayedCalls).toHaveLength(4);
   });
 
-  it('is bounded when Steam keeps answering with another app id', () => {
-    const { client, presence } = setup({ maxUnconfirmedAttempts: 3 });
+  it('ignores a stale echo while pending instead of resending', () => {
+    const { client, presence } = setup({ confirmTimeoutMs: 1000 });
     presence.onLoggedOn();
-    for (let i = 0; i < 10; i++) presence.onPlayingState(false, 0);
+    presence.onPlayingState(false, 0); // Steam echoes the old state
+    expect(client.gamesPlayedCalls).toHaveLength(1);
+    presence.onPlayingState(false, APP);
+    expect(presence.state).toBe('playing');
+    vi.advanceTimersByTime(10_000);
+    expect(client.gamesPlayedCalls).toHaveLength(1);
+  });
+
+  it('is bounded when Steam keeps answering with another app id', () => {
+    const { client, presence } = setup({ confirmTimeoutMs: 1000, maxUnconfirmedAttempts: 3 });
+    presence.onLoggedOn();
+    for (let i = 0; i < 10; i++) {
+      presence.onPlayingState(false, 0);
+      vi.advanceTimersByTime(1000);
+    }
     expect(client.gamesPlayedCalls).toHaveLength(3);
     expect(presence.state).toBe('failed');
+  });
+
+  it('restores presence when the game is cleared while playing', () => {
+    const { client, presence } = setup();
+    presence.onLoggedOn();
+    presence.onPlayingState(false, APP);
+    presence.onPlayingState(false, 0);
+    expect(client.gamesPlayedCalls).toEqual([[APP], [APP]]);
   });
 
   it('clears the game on stop only when it was set', () => {

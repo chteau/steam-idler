@@ -3,6 +3,10 @@ import path from 'node:path';
 export const LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'] as const;
 export type LogLevel = (typeof LOG_LEVELS)[number];
 
+/** Persona states the daemon can set after logon (steam-user EPersonaState values). */
+export const PERSONA_STATES = { online: 1, away: 3, invisible: 7, offline: 0 } as const;
+export type PersonaName = keyof typeof PERSONA_STATES;
+
 export interface Config {
   /** Bootstrap refresh token from the environment, if any. */
   refreshToken: string | undefined;
@@ -11,6 +15,8 @@ export interface Config {
   /** Absolute path of the session file, or undefined when file persistence is disabled. */
   sessionFile: string | undefined;
   renewRefreshTokens: boolean;
+  /** Status shown to friends. Steam only displays the game when this session is not offline/invisible. */
+  persona: PersonaName;
 }
 
 export class ConfigError extends Error {
@@ -85,7 +91,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
     );
   }
 
+  const personaRaw = (env.STEAM_PERSONA?.trim() || 'online').toLowerCase();
+  let persona: PersonaName = 'online';
+  if (Object.hasOwn(PERSONA_STATES, personaRaw)) {
+    persona = personaRaw as PersonaName;
+  } else {
+    problems.push(`STEAM_PERSONA must be one of ${Object.keys(PERSONA_STATES).join(', ')} (got "${env.STEAM_PERSONA}").`);
+  }
+
   if (problems.length > 0) throw new ConfigError(problems);
 
-  return { refreshToken, appId, logLevel, sessionFile, renewRefreshTokens };
+  return { refreshToken, appId, logLevel, sessionFile, renewRefreshTokens, persona };
 }

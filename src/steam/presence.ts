@@ -88,9 +88,12 @@ export class PresenceManager {
       this.log.info('Other session stopped playing; restoring presence');
       this.unconfirmed = 0;
     }
-    if (this.status === 'playing' || this.status === 'blocked') this.status = 'idle';
-    if (this.status === 'pending') {
-      // Steam answered our request with something else: count it as an unconfirmed attempt.
+    if (this.status === 'pending' && !wasBlocked) {
+      // Steam often echoes the previous state (app 0) right after our request; the confirm timer
+      // decides whether to retry, so a stale echo can't trigger a duplicate send.
+      return;
+    }
+    if (this.status === 'playing' || this.status === 'blocked' || this.status === 'pending') {
       this.clearConfirmTimer();
       this.status = 'idle';
     }

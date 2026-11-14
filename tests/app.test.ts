@@ -8,7 +8,7 @@ import { FakeSteamClient, fakeToken, memoryLogger, validToken } from './helpers.
 const policy = { baseMs: 1000, maxMs: 8000, replacedMinMs: 5000, throttledMinMs: 10_000 };
 
 function config(overrides: Partial<Config> = {}): Config {
-  return { refreshToken: validToken(), appId: 2200, logLevel: 'info', sessionFile: undefined, renewRefreshTokens: false, ...overrides };
+  return { refreshToken: validToken(), appId: 2200, logLevel: 'info', sessionFile: undefined, renewRefreshTokens: false, persona: 'online', ...overrides };
 }
 
 async function start(cfg = config(), store: SessionStore = new MemorySessionStore()) {
@@ -43,6 +43,7 @@ describe('startDaemon', () => {
     const { client, daemon } = await start();
     expect(client.logOnCalls).toHaveLength(1);
     client.succeed();
+    expect(client.personaCalls).toEqual([1]); // Online, set before the game
     expect(client.gamesPlayedCalls).toEqual([[2200]]);
     client.emit('playingState', false, 2200);
     expect(daemon.presence.state).toBe('playing');

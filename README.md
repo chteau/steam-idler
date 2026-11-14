@@ -77,6 +77,7 @@ Configuration comes from environment variables. A local `.env` file is read if p
 | `STEAM_APP_ID` | `2200` | App ID to report as played. |
 | `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. |
 | `SESSION_FILE` | `./data/session.json` | Local token store. `none` disables it (memory only). |
+| `STEAM_PERSONA` | `online` | Status set after logon: `online`, `away`, `invisible` or `offline`. Steam shows the game to others only when this session is online or away. |
 | `STEAM_RENEW_REFRESH_TOKENS` | `false` | Ask Steam to rotate the token on logon. Leave `false` unless `SESSION_FILE` is durable storage. |
 
 Bad configuration stops the daemon at startup with exit code 78. It lists every problem it found.

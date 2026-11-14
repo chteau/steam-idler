@@ -9,6 +9,7 @@ export interface SteamClientLike extends EventEmitter {
   logOn(details: { refreshToken: string; machineName?: string }): void;
   logOff(): void;
   gamesPlayed(apps: number[]): void;
+  setPersona(state: number): void;
   readonly steamID: unknown;
 }
 

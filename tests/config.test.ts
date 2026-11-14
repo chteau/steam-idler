@@ -14,6 +14,7 @@ describe('loadConfig', () => {
       logLevel: 'info',
       sessionFile: path.resolve(cwd, 'data/session.json'),
       renewRefreshTokens: false,
+      persona: 'online',
     });
   });
 
@@ -28,6 +29,10 @@ describe('loadConfig', () => {
     expect(c.logLevel).toBe('debug');
     expect(c.sessionFile).toBe(path.resolve(cwd, 'state/s.json'));
     expect(c.renewRefreshTokens).toBe(true);
+  });
+
+  it('accepts persona states case-insensitively', () => {
+    expect(loadConfig({ STEAM_PERSONA: 'Invisible' }, cwd).persona).toBe('invisible');
   });
 
   it('treats an empty STEAM_REFRESH_TOKEN as missing', () => {
@@ -47,6 +52,8 @@ describe('loadConfig', () => {
     [{ LOG_LEVEL: 'verbose' }, 'LOG_LEVEL must be one of'],
     [{ STEAM_REFRESH_TOKEN: 'not a token' }, 'does not look like a Steam refresh token'],
     [{ STEAM_RENEW_REFRESH_TOKENS: 'maybe' }, 'STEAM_RENEW_REFRESH_TOKENS must be'],
+    [{ STEAM_PERSONA: 'busy' }, 'STEAM_PERSONA must be one of'],
+    [{ STEAM_PERSONA: 'constructor' }, 'STEAM_PERSONA must be one of'],
     [{ STEAM_RENEW_REFRESH_TOKENS: 'true', SESSION_FILE: 'none' }, 'requires SESSION_FILE'],
   ])('rejects %o', (env, message) => {
     expect(() => loadConfig(env, cwd)).toThrow(ConfigError);

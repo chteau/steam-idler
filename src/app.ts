@@ -1,5 +1,5 @@
 import type { Config } from './config.js';
-import { ConfigError } from './config.js';
+import { ConfigError, PERSONA_STATES } from './config.js';
 import { checkRefreshToken, attachSteamGuardHandler } from './steam/auth.js';
 import type { SteamClientLike } from './steam/client.js';
 import { PresenceManager } from './steam/presence.js';
@@ -121,7 +121,9 @@ export async function startDaemon(config: Config, deps: DaemonDeps): Promise<Dae
     {
       onLoggedOn: () => {
         const rssMb = Math.round(process.memoryUsage().rss / 1_048_576);
-        log.info({ rssMb }, 'Session ready');
+        log.info({ rssMb, persona: config.persona }, 'Session ready');
+        // Without this the session counts as offline, and friends/profile don't see the game.
+        client.setPersona(PERSONA_STATES[config.persona]);
         presence.onLoggedOn();
       },
       onDisconnected: () => presence.onDisconnected(),

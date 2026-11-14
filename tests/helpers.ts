@@ -8,6 +8,7 @@ export class FakeSteamClient extends EventEmitter implements SteamClientLike {
   logOnCalls: Array<{ refreshToken: string }> = [];
   gamesPlayedCalls: number[][] = [];
   logOffCalls = 0;
+  personaCalls: number[] = [];
   throwOnLogOn: Error | undefined;
 
   logOn(details: { refreshToken: string }): void {
@@ -16,6 +17,9 @@ export class FakeSteamClient extends EventEmitter implements SteamClientLike {
   }
   logOff(): void {
     this.logOffCalls += 1;
+  }
+  setPersona(state: number): void {
+    this.personaCalls.push(state);
   }
   gamesPlayed(apps: number[]): void {
     this.gamesPlayedCalls.push(apps);
